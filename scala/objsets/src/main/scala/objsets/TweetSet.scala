@@ -39,7 +39,7 @@ abstract class TweetSet {
     * Question: Can we implment this method here, or should it remain abstract
     * and be implemented in the subclasses?
     */
-  def filter(p: Tweet => Boolean): TweetSet
+  def filter(p: Tweet => Boolean): TweetSet = this.filterAcc(p, new Empty)
 
   /**
     * This is a helper method for `filter` that propagetes the accumulated tweets.
@@ -117,25 +117,11 @@ class Empty extends TweetSet {
 
   def incl(tweet: Tweet): TweetSet = new NonEmpty(tweet, new Empty, new Empty)
 
-  def remove(tweet: Tweet): TweetSet = new Empty
+  def remove(tweet: Tweet): TweetSet = this
 
   def foreach(f: Tweet => Unit): Unit = ()
 
-  /**
-    * This method takes a predicate and returns a subset of all the elements
-    * in the original set for which the predicate is true.
-    *
-    * Question: Can we implment this method here, or should it remain abstract
-    * and be implemented in the subclasses?
-    */
-  override def filter(p: Tweet => Boolean) = new Empty
 
-  /**
-    * Returns a new `TweetSet` that is the union of `TweetSet`s `this` and `that`.
-    *
-    * Question: Should we implment this method here, or should it remain abstract
-    * and be implemented in the subclasses?
-    */
   override def union(that: TweetSet) = that
 
   override def mostRetweeted = throw new NoSuchElementException
@@ -182,22 +168,23 @@ class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
   }
 
 
-  override def filter(p: Tweet => Boolean) = {
-    filterAcc(p, new Empty)
-  }
-
   override def union(that: TweetSet) = {
     left.union(right).union(that).incl(elem)
   }
 
   override def mostRetweeted = {
-    val childSet = left.union(right)
-    if (childSet.isInstanceOf[Empty]) elem
-    else {
-      val childMostRetweeted = childSet.mostRetweeted
-      if (elem.retweets > childMostRetweeted.retweets) elem
-      else childMostRetweeted
-    }
+    lazy val leftMost = left.mostRetweeted
+    lazy val rightMost = right.mostRetweeted
+
+    if( !left.isInstanceOf[Empty] && leftMost.retweets > elem.retweets )
+      if( !right.isInstanceOf[Empty] && rightMost.retweets > leftMost.retweets )
+        rightMost
+      else
+        leftMost
+    else if( !right.isInstanceOf[Empty] && rightMost.retweets > elem.retweets )
+      rightMost
+    else
+      elem
   }
 
   override def descendingByRetweet = {
