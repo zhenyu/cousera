@@ -120,8 +120,8 @@ object Huffman {
     case Nil => trees
     case _ :: Nil => trees
     case current :: next :: rest => {
-      //weight more is left child
-      val fork = new Fork(next, current, chars(current) ++ chars(next), weight(current) + weight(next))
+
+      val fork = new Fork(current, next, chars(current) ++ chars(next), weight(current) + weight(next))
       insertWithSort(fork, rest)
     }
 
@@ -224,7 +224,7 @@ object Huffman {
           if (chars(left).contains(char)) encodeOne(left, char, pre ++ List[Bit](0))
           else {
             if (chars(right).contains(char))
-              encodeOne(left, char, pre ++ List[Bit](0))
+              encodeOne(left, char, pre ++ List[Bit](1))
             else throw new RuntimeException("bad char:" + char)
           }
       }
@@ -232,7 +232,7 @@ object Huffman {
 
     text match {
       case Nil => Nil
-      case current :: next => encodeOne(tree, current, List[Bit]())
+      case current :: next => encodeOne(tree, current, List[Bit]())++encode(tree)(next)
     }
   }
 
