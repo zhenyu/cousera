@@ -164,21 +164,22 @@ object Huffman {
 
   type Bit = Int
 
-  def decodeOne(tree: CodeTree, bits: List[Bit]): (Char, List[Bit]) = {
-    tree match {
-      case Leaf(char, _) => (char, bits)
-      case Fork(left, right, _, _) => {
-        val child = if (0 == bits.head) left else right
-        decodeOne(child, bits.tail)
-      }
-    }
-  }
 
   /**
     * This function decodes the bit sequence `bits` using the code tree `tree` and returns
     * the resulting list of characters.
     */
   def decode(tree: CodeTree, bits: List[Bit]): List[Char] = {
+    def decodeOne(tree: CodeTree, bits: List[Bit]): (Char, List[Bit]) = {
+      tree match {
+        case Leaf(char, _) => (char, bits)
+        case Fork(left, right, _, _) => {
+          val child = if (0 == bits.head) left else right
+          decodeOne(child, bits.tail)
+        }
+      }
+    }
+
     var rest = bits
     var result = List[Char]()
 
@@ -216,7 +217,23 @@ object Huffman {
     * into a sequence of bits.
     */
   def encode(tree: CodeTree)(text: List[Char]): List[Bit] = {
+    def encodeOne(tree: CodeTree, char: Char, pre: List[Bit]): List[Bit] = {
+      tree match {
+        case Leaf(_, _) => pre
+        case Fork(left, right, _, _) =>
+          if (chars(left).contains(char)) encodeOne(left, char, pre ++ List[Bit](0))
+          else {
+            if (chars(right).contains(char))
+              encodeOne(left, char, pre ++ List[Bit](0))
+            else throw new RuntimeException("bad char:" + char)
+          }
+      }
+    }
 
+    text match {
+      case Nil => Nil
+      case current :: next => encodeOne(tree, current, List[Bit]())
+    }
   }
 
   // Part 4b: Encoding using code table
