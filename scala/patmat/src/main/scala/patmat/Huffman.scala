@@ -224,7 +224,7 @@ object Huffman {
           if (chars(left).contains(char)) encodeOne(left, char, pre ++ List[Bit](0))
           else {
             if (chars(right).contains(char))
-              encodeOne(left, char, pre ++ List[Bit](1))
+              encodeOne(right, char, pre ++ List[Bit](1))
             else throw new RuntimeException("bad char:" + char)
           }
       }
