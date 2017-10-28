@@ -24,12 +24,12 @@ object Huffman {
 
 
   // Part 1: Basics
-  def weight(tree: CodeTree): Int = this match {
+  def weight(tree: CodeTree): Int = tree match {
     case Leaf(_, weight) => weight
     case Fork(_, _, _, weight) => weight
   } // tree match ...
 
-  def chars(tree: CodeTree): List[Char] = this match {
+  def chars(tree: CodeTree): List[Char] = tree match {
     case Leaf(char, _) => List(char)
     case Fork(_, _, chars, _) => chars
   }
@@ -86,7 +86,7 @@ object Huffman {
     * of a leaf is the frequency of the character.
     */
   def makeOrderedLeafList(freqs: List[(Char, Int)]): List[Leaf] = {
-    freqs.map((x) => new Leaf(x._1, x._2)).sortBy((_) => weight(_))
+    freqs.map((x) => new Leaf(x._1, x._2)).sortBy(_.weight)
   }
 
   /**
